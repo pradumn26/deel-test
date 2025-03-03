@@ -17,7 +17,6 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<number>(0);
 
-  // Memoized search function to prevent unnecessary re-renders
   const searchData = async (searchQuery: string) => {
     if (searchQuery.length < MIN_CHARS) {
       setOptions([]);
@@ -40,6 +39,12 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
+
+    if (value.trim() === "") {
+      setShowOptions(false);
+      return;
+    }
+
     setShowOptions(true);
 
     // Clear previous timer
@@ -51,6 +56,16 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
     debounceTimer.current = setTimeout(() => {
       searchData(value);
     }, DEBOUNCE_TIME);
+  };
+
+  const handleFocus = () => {
+    if (query.trim() === "") {
+      setShowOptions(false);
+      return;
+    }
+
+    setShowOptions(true);
+    searchData(query);
   };
 
   // Highlight matching text in options
@@ -121,7 +136,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => setShowOptions(true)}
+        onFocus={handleFocus}
         placeholder="Search..."
         className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         aria-label="Search"
@@ -138,27 +153,38 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
         </div>
       )}
 
-      {showOptions && options.length > 0 && (
+      {showOptions && (
         <ul
           className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
           id="autocomplete-list"
           role="listbox"
         >
-          {options.map((option, index) => (
+          {options.length > 0 &&
+            options.map((option, index) => (
+              <li
+                key={option.id}
+                id={`option-${index}`}
+                role="option"
+                aria-selected={index === selectedIndex}
+                className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                  index === selectedIndex ? "bg-gray-100" : ""
+                }`}
+                onClick={() => handleSelect(option)}
+                onMouseEnter={() => setSelectedIndex(index)}
+              >
+                {highlightMatch(option.label)}
+              </li>
+            ))}
+          {options.length === 0 && (
             <li
-              key={option.id}
-              id={`option-${index}`}
-              role="option"
-              aria-selected={index === selectedIndex}
-              className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                index === selectedIndex ? "bg-gray-100" : ""
-              }`}
-              onClick={() => handleSelect(option)}
-              onMouseEnter={() => setSelectedIndex(index)}
+              key="no-results"
+              id="no-results"
+              role="status"
+              className="px-3 py-2 cursor-pointer text-center"
             >
-              {highlightMatch(option.label)}
+              No results found
             </li>
-          ))}
+          )}
         </ul>
       )}
     </div>
