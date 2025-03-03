@@ -1,16 +1,14 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   AutocompleteOption,
   AutocompleteProps,
 } from "../../types/autocomplete";
 import { searchOptions } from "../../services/search";
+import { DEBOUNCE_TIME } from "../../constants/common";
 
-export const Autocomplete: React.FC<AutocompleteProps> = ({
-  placeholder = "Search...",
-  minChars = 2,
-  debounceMs = 300,
-  onSelect,
-}) => {
+const MIN_CHARS = 2;
+
+export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
   const [query, setQuery] = useState("");
   const [options, setOptions] = useState<AutocompleteOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,26 +18,23 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   const debounceTimer = useRef<number>(0);
 
   // Memoized search function to prevent unnecessary re-renders
-  const searchData = useCallback(
-    async (searchQuery: string) => {
-      if (searchQuery.length < minChars) {
-        setOptions([]);
-        return;
-      }
+  const searchData = async (searchQuery: string) => {
+    if (searchQuery.length < MIN_CHARS) {
+      setOptions([]);
+      return;
+    }
 
-      setLoading(true);
-      try {
-        const results = await searchOptions(searchQuery);
-        setOptions(results);
-      } catch (error) {
-        console.error("Search failed:", error);
-        setOptions([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [minChars]
-  );
+    setLoading(true);
+    try {
+      const results = await searchOptions(searchQuery);
+      setOptions(results);
+    } catch (error) {
+      console.error("Search failed:", error);
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle input changes with debouncing
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +50,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     // Set new timer
     debounceTimer.current = setTimeout(() => {
       searchData(value);
-    }, debounceMs);
+    }, DEBOUNCE_TIME);
   };
 
   // Highlight matching text in options
@@ -127,7 +122,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => setShowOptions(true)}
-        placeholder={placeholder}
+        placeholder="Search..."
         className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         aria-label="Search"
         aria-expanded={showOptions}

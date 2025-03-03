@@ -4,8 +4,5 @@ export interface AutocompleteOption {
 }
 
 export interface AutocompleteProps {
-  placeholder?: string;
-  minChars?: number;
-  debounceMs?: number;
   onSelect: (option: AutocompleteOption) => void;
 }
