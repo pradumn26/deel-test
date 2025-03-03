@@ -6,7 +6,7 @@ import {
 import { searchOptions } from "../../services/search";
 import { DEBOUNCE_TIME } from "../../constants/common";
 
-const MIN_CHARS = 2;
+const MIN_CHARS = 1;
 
 export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
   const [query, setQuery] = useState("");
