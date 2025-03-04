@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
+import dompurify from "dompurify";
+
 import {
   AutocompleteOption,
   AutocompleteProps,
 } from "../../types/autocomplete";
 import { searchOptions } from "../../services/search";
-import { DEBOUNCE_TIME } from "../../constants/common";
+import { DEBOUNCE_TIME } from "../../utils/constants";
+import { getMatchingParts } from "../../utils/helpers";
 
 const MIN_CHARS = 1;
 
@@ -28,7 +31,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
       const results = await searchOptions(searchQuery);
       setOptions(results);
     } catch (error) {
-      console.error("Search failed:", error);
+      // send the error to the error tracking service
       setOptions([]);
     } finally {
       setLoading(false);
@@ -72,12 +75,13 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
   const highlightMatch = (text: string) => {
     if (!query) return text;
 
-    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    const parts = getMatchingParts(text, query);
+
     return (
       <span>
         {parts.map((part) =>
           part.toLowerCase() === query.toLowerCase() ? (
-            <mark key={part}>{part}</mark>
+            <mark key={part}>{dompurify.sanitize(part)}</mark>
           ) : (
             part
           )
