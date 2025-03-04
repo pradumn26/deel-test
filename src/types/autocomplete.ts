@@ -6,3 +6,8 @@ export interface AutocompleteOption {
 export interface AutocompleteProps {
   onSelect: (option: AutocompleteOption) => void;
 }
+
+export interface OptionItemProps {
+  option: AutocompleteOption;
+  query: string;
+}

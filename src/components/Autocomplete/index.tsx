@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import dompurify from "dompurify";
 
 import {
   AutocompleteOption,
@@ -7,7 +6,7 @@ import {
 } from "../../types/autocomplete";
 import { searchOptions } from "../../services/search";
 import { DEBOUNCE_TIME } from "../../utils/constants";
-import { getMatchingParts } from "../../utils/helpers";
+import { OptionItem } from "./OptionItem";
 
 const MIN_CHARS = 1;
 
@@ -69,25 +68,6 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
 
     setShowOptions(true);
     searchData(query);
-  };
-
-  // Highlight matching text in options
-  const highlightMatch = (text: string) => {
-    if (!query) return text;
-
-    const parts = getMatchingParts(text, query);
-
-    return (
-      <span>
-        {parts.map((part) =>
-          part.toLowerCase() === query.toLowerCase() ? (
-            <mark key={part}>{dompurify.sanitize(part)}</mark>
-          ) : (
-            part
-          )
-        )}
-      </span>
-    );
   };
 
   // Handle keyboard navigation
@@ -176,7 +156,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ onSelect }) => {
                 onClick={() => handleSelect(option)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                {highlightMatch(option.label)}
+                <OptionItem query={query} option={option} />
               </li>
             ))}
           {options.length === 0 && (
